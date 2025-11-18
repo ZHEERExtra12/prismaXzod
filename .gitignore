@@ -1,0 +1,9 @@
+node_modules
+dist
+examples/**/node_modules/
+examples/**/dist/
+examples/**/build/
+examples/**/.env
+examples/**/prisma/dev.db
+examples/**/prisma/migrations/
+examples/**/prisma/schema.prisma

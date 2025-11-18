@@ -1,0 +1,27 @@
+{
+  "name": "mypackage",
+  "version": "1.0.0",
+  "description": "prismaXzod",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "peerDependencies": {
+    "@prisma/client": ">=4.0.0",
+    "prisma": ">=4.0.0"
+  },
+  "devDependencies": {
+    "@prisma/client": "^6.19.0",
+    "@types/node": "^24.10.1",
+    "prisma": "^6.19.0",
+    "typescript": "^5.9.3",
+    "zod": "^4.1.12"
+  },
+  "dependencies": {
+    "@prisma/generator-helper": "^6.19.0",
+    "@prisma/internals": "^6.19.0"
+  }
+}
