@@ -1,6 +1,6 @@
 {
   "name": "prisma-x-zod",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A tiny-but-powerful package that lets you generate Zod schemas straight from your Prisma models — dynamically, no codegen, no manual TS files, no pain.",
   "type": "module",
   "main": "dist/index.js",
@@ -11,11 +11,19 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZHEERExtra12/prismaXzod.git"
+  },
+  "homepage": "https://github.com/ZHEERExtra12/prismaXzod#readme",
+  "bugs": {
+    "url": "https://github.com/ZHEERExtra12/prismaXzod/issues"
+  },
   "scripts": {
-    "dev": "tsup --watch",
     "build": "tsc -p tsconfig.build.json",
     "example": "tsx examples/index.ts",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "test": "tsx src/index.ts"
   },
   "peerDependencies": {
     "@prisma/client": ">=4.0.0",
@@ -31,5 +39,5 @@
   "dependencies": {
     "@prisma/generator-helper": "^6.19.0",
     "@prisma/internals": "^6.19.0"
-  }
+   }
 }
