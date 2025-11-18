@@ -7,3 +7,5 @@ examples/**/.env
 examples/**/prisma/dev.db
 examples/**/prisma/migrations/
 examples/**/prisma/schema.prisma
+.env
+prisma/generated/prisma/client
