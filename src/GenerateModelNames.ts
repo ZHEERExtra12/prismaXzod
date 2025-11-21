@@ -15,7 +15,7 @@ export default async function GenerateModelNames(options: DMMF.Datamodel) {
 
 
 
-  const target = path.join( "./helpers/model-names.ts");
+  const target = path.join( "./dist/helpers/model-names.ts");
 
   await fs.writeFile(target, content, { encoding: 'utf-8' });
 

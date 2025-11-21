@@ -10,3 +10,4 @@ examples/**/prisma/migrations/
 examples/**/prisma/schema.prisma
 .env
 prisma/generated/prisma/client
+/generated/prisma

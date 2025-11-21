@@ -1,25 +1,16 @@
 {
   "compilerOptions": {
-  "allowJs": true,
-  "alwaysStrict": true,
-  "allowSyntheticDefaultImports": true,
-  "module": "esnext",
-  "moduleResolution": "node",
-  "outDir": "./dist",
-  "noEmit": false,
-  "declaration": true,            // <-- add this
-  "noImplicitAny": true,
-  "strict": true,
-  "strictNullChecks": true,
-  "jsx": "preserve",
-  "target": "ES2022",
-  "lib": ["dom", "dom.iterable", "esnext", "webworker"],
-  "skipLibCheck": true,
-  "esModuleInterop": true,
-  "forceConsistentCasingInFileNames": true,
-  "resolveJsonModule": true,
-  "baseUrl": "."
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
-  "exclude": ["node_modules"],
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

@@ -1,67 +1,83 @@
-import { readFileSync } from "fs";
-import { dirname, resolve } from "path";
+import { existsSync, readFileSync } from "fs";
+import { resolve, dirname, join } from "path";
 import { pathToFileURL } from "url";
 import { createRequire } from "module";
 
 /**
- * Get the custom Prisma output path if defined in generator block
+ * Detect custom client output from schema.prisma
  */
-
 export function CustomOutput(schemaPath: string): string | null {
-    const raw = readFileSync(schemaPath, "utf8");
-    const dir = dirname(schemaPath);
-  
-    const match = raw.match(
-      /generator\s+client\s*\{[\s\S]*?output\s*=\s*["'](.+?)["']/m
-    );
-  
-    if (!match) return null;
-  
-    return resolve(dir, match[1] ?? "");
-  }
+  const raw = readFileSync(schemaPath, "utf8");
+  const dir = dirname(schemaPath);
 
-  
+  const match = raw.match(
+    /generator\s+client\s*\{[\s\S]*?output\s*=\s*["'](.+?)["']/m
+  );
+
+  if (!match) return null;
+
+  return resolve(dir, match[1] ?? "");
+}
+
+
 /**
- * Load Prisma client from either @prisma/client or a custom output
+ * SUPER BULLETPROOF CLIENT LOADER
  */
-export type PrismaClientNamespace = Record<string, any>;
+export async function LoadClient(customOutputPath?: string) {
+  const require = createRequire(import.meta.url);
 
-export async function LoadClient(customPath?: string): Promise<PrismaClientNamespace | null> {
-  if (customPath) {
-    const resolvedPath = resolve(customPath);
+  const searchPaths: string[] = [];
 
-    const pathsToTry = [
-      resolvedPath,
-      `${resolvedPath}.js`,
-      resolve(customPath, "index.js"),
-    ];
-
-    // Try ESM
-    for (const pathToTry of pathsToTry) {
-      try {
-        const fileUrl = pathToFileURL(pathToTry).href;
-        const client = await import(fileUrl);
-        const prisma = client?.Prisma ?? client?.default?.Prisma ?? null;
-        if (prisma) return prisma as PrismaClientNamespace;
-      } catch {}
-    }
-
-    // Try CJS
-    for (const pathToTry of pathsToTry) {
-      try {
-        const require = createRequire(import.meta.url);
-        const client = require(pathToTry);
-        const prisma = client?.Prisma ?? client?.default?.Prisma ?? null;
-        if (prisma) return prisma as PrismaClientNamespace;
-      } catch {}
-    }
+  // 1️⃣ CUSTOM OUTPUT (exact user config)
+  if (customOutputPath) {
+    searchPaths.push(
+      resolve(customOutputPath),
+      resolve(customOutputPath, "index"),
+      resolve(customOutputPath, "index.js"),
+      resolve(customOutputPath, "index.mjs"),
+      resolve(customOutputPath, "index.ts"),
+      resolve(customOutputPath, "index.tsx"),
+    );
   }
 
-  // Fallback to local @prisma/client
-  try {
-    // const client = await import("@prisma/client");
-    // return (client as any).Prisma ?? (client as any).default?.Prisma ?? null;
-  } catch {}
+  // 2️⃣ DEFAULT PRISMA OUTPUT (runtime client)
+  const defaultClientPaths = [
+    ".prisma/client",
+    "node_modules/.prisma/client",
+    join(process.cwd(), "node_modules/.prisma/client"),
+    join(process.cwd(), ".prisma/client")
+  ];
+
+  defaultClientPaths.forEach(p => {
+    searchPaths.push(
+      resolve(p),
+      resolve(p, "index.js"),
+      resolve(p, "index.mjs")
+    );
+  });
+
+  // Filter to only existing files/folders
+  const existing = searchPaths.filter(p => existsSync(p));
+
+  for (const p of existing) {
+    // Try ESM import first
+    try {
+      const fileUrl = pathToFileURL(p).href;
+      const mod = await import(fileUrl);
+      const prisma = mod?.Prisma || mod?.default?.Prisma;
+      if (prisma) return prisma;
+    } catch {}
+
+    // Try CJS fallback
+    try {
+      const mod = require(p);
+      const prisma = mod?.Prisma || mod?.default?.Prisma;
+      if (prisma) return prisma;
+    } catch {}
+  }
+
+  console.error("❌ Prisma client NOT found in any expected paths:");
+  for (const p of searchPaths) console.error("   -", p);
 
   return null;
 }

@@ -1,35 +1,36 @@
-import type { DMMF } from "@prisma/generator-helper";
-import { findSchemaPrisma } from "./findSchema.js";
-import { CustomOutput, LoadClient } from "./output.js";
+import { LoadClient } from "./output";
+import { findSchemaPrisma } from "./findSchema";
+import { CustomOutput } from "./output";
 import { join } from "path";
 
-export async function getDMMF(): Promise<DMMF.Datamodel> {
+export async function getDMMF() {
   const schema = findSchemaPrisma();
-
   const outputPath = schema ? CustomOutput(schema) : null;
 
-  // Try custom output first, fallback to default
-  const prismaClientModule = await LoadClient(
-    outputPath ? join(outputPath, "client") : undefined
-  );
+  // try to load prisma client from the correct location
+  const pathsToTry = [
+      outputPath,
+      join(process.cwd(), "node_modules/.prisma/client"),
+      join(process.cwd(), ".prisma/client")
+  ];
 
-  
-  console.log(prismaClientModule);
-  const dmmf = prismaClientModule?.dmmf?.datamodel;
+  let prismaClientModule = null;
 
-  if (!dmmf) {
-    throw new Error(
-      JSON.stringify(
-        {
-          schemaFound: schema ?? false,
-          customOutput: outputPath ?? false,
-          clientLoaded: Boolean(prismaClientModule),
-        },
-        null,
-        2
-      )
-    );
+  for (const p of pathsToTry) {
+      try {
+          prismaClientModule = await LoadClient(p ?? undefined);
+          if (prismaClientModule) break;
+      } catch {}
   }
 
-  return dmmf as DMMF.Datamodel;
+  if (!prismaClientModule?.dmmf?.datamodel) {
+      throw new Error(JSON.stringify({
+          schemaFound: schema ?? false,
+          customOutput: outputPath ?? false,
+          clientLoaded: false,
+          triedPaths: pathsToTry
+      }, null, 2));
+  }
+
+  return prismaClientModule.dmmf.datamodel;
 }

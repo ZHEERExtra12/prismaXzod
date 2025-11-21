@@ -1,3 +1,2 @@
-#!/usr/bin/env node 
-
-import './generator.js';
+#!/usr/bin/env node
+import "./generator.js";
