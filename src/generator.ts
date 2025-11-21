@@ -1,8 +1,5 @@
-import { generatorHandler } from "@prisma/generator-helper";
-import onManifest from "./onManifest";
-import onGenerate from "./onGenerate";
+import { getDMMF } from "./helpers/DMMF.js";
+import GenerateModelNames from "./GenerateModelNames.js";
 
-generatorHandler({
-  onManifest: onManifest,
-  onGenerate: onGenerate,
-});
+const dmmf = await getDMMF();
+GenerateModelNames(dmmf);

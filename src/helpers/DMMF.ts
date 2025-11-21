@@ -1,6 +1,6 @@
 import type { DMMF } from "@prisma/generator-helper";
-import { findSchemaPrisma } from "./findSchema";
-import { CustomOutput, LoadClient } from "./output";
+import { findSchemaPrisma } from "./findSchema.js";
+import { CustomOutput, LoadClient } from "./output.js";
 import { join } from "path";
 
 export async function getDMMF(): Promise<DMMF.Datamodel> {

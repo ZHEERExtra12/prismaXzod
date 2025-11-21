@@ -2,7 +2,6 @@ import { readFileSync } from "fs";
 import { dirname, resolve } from "path";
 import { pathToFileURL } from "url";
 import { createRequire } from "module";
-import { JsonRPC } from "@prisma/generator-helper";
 
 /**
  * Get the custom Prisma output path if defined in generator block
@@ -60,8 +59,8 @@ export async function LoadClient(customPath?: string): Promise<PrismaClientNames
 
   // Fallback to local @prisma/client
   try {
-    const client = await import("@prisma/client");
-    return (client as any).Prisma ?? (client as any).default?.Prisma ?? null;
+    // const client = await import("@prisma/client");
+    // return (client as any).Prisma ?? (client as any).default?.Prisma ?? null;
   } catch {}
 
   return null;
