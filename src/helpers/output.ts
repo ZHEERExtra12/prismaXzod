@@ -1,6 +1,8 @@
 import { readFileSync } from "fs";
 import { dirname, resolve } from "path";
-
+import { pathToFileURL } from "url";
+import { createRequire } from "module";
+import { JsonRPC } from "@prisma/generator-helper";
 
 /**
  * Get the custom Prisma output path if defined in generator block
@@ -23,20 +25,44 @@ export function CustomOutput(schemaPath: string): string | null {
 /**
  * Load Prisma client from either @prisma/client or a custom output
  */
-export async function LoadClient(customPath?: string): Promise<any | null> {
-    // 1: If custom output exists → try loading THAT
-    if (customPath) {
+export type PrismaClientNamespace = Record<string, any>;
+
+export async function LoadClient(customPath?: string): Promise<PrismaClientNamespace | null> {
+  if (customPath) {
+    const resolvedPath = resolve(customPath);
+
+    const pathsToTry = [
+      resolvedPath,
+      `${resolvedPath}.js`,
+      resolve(customPath, "index.js"),
+    ];
+
+    // Try ESM
+    for (const pathToTry of pathsToTry) {
       try {
-        const client = await import(customPath);
-        return client?.Prisma ?? client?.default?.Prisma ?? null;
-      } catch (_) {}
+        const fileUrl = pathToFileURL(pathToTry).href;
+        const client = await import(fileUrl);
+        const prisma = client?.Prisma ?? client?.default?.Prisma ?? null;
+        if (prisma) return prisma as PrismaClientNamespace;
+      } catch {}
     }
-  
-    // 2: Otherwise → use default Prisma client
-    try {
-      const client = await import("@prisma/client");
-      return client.Prisma ?? null;
-    } catch (_) {}
-  
-    return null;
+
+    // Try CJS
+    for (const pathToTry of pathsToTry) {
+      try {
+        const require = createRequire(import.meta.url);
+        const client = require(pathToTry);
+        const prisma = client?.Prisma ?? client?.default?.Prisma ?? null;
+        if (prisma) return prisma as PrismaClientNamespace;
+      } catch {}
+    }
   }
+
+  // Fallback to local @prisma/client
+  try {
+    const client = await import("@prisma/client");
+    return (client as any).Prisma ?? (client as any).default?.Prisma ?? null;
+  } catch {}
+
+  return null;
+}

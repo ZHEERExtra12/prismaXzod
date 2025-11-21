@@ -1,27 +1,29 @@
+import type { DMMF } from "@prisma/generator-helper";
 import { findSchemaPrisma } from "./findSchema";
-import { CustomOutput } from "./output";
-import { LoadClient } from "./output";
+import { CustomOutput, LoadClient } from "./output";
 import { join } from "path";
 
-export async function getDMMF() {
-  // Find schema
+export async function getDMMF(): Promise<DMMF.Datamodel> {
   const schema = findSchemaPrisma();
 
-  // Read output (may be null)
   const outputPath = schema ? CustomOutput(schema) : null;
 
-  // Try to load client
-  const Prisma = await LoadClient(
-    outputPath ? join(outputPath, "index.js") : undefined
+  // Try custom output first, fallback to default
+  const prismaClientModule = await LoadClient(
+    outputPath ? join(outputPath, "client") : undefined
   );
 
-  if (!Prisma?.dmmf?.datamodel) {
+  
+  console.log(prismaClientModule);
+  const dmmf = prismaClientModule?.dmmf?.datamodel;
+
+  if (!dmmf) {
     throw new Error(
       JSON.stringify(
         {
           schemaFound: schema ?? false,
           customOutput: outputPath ?? false,
-          clientLoaded: Boolean(Prisma),
+          clientLoaded: Boolean(prismaClientModule),
         },
         null,
         2
@@ -29,5 +31,5 @@ export async function getDMMF() {
     );
   }
 
-  return Prisma.dmmf.datamodel;
+  return dmmf as DMMF.Datamodel;
 }
