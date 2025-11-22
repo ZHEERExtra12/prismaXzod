@@ -15,8 +15,10 @@
 // });
 
 import { getDMMF} from "./helpers/DMMF";
-import GenerateModelNames from "./GenerateModelNames";
+import GenerateModelNames from "./helpers/GenerateModelNames";
+import TypeGen from "./helpers/typeGen";
 
 const dmmf = await getDMMF();
 
 GenerateModelNames(dmmf);
+TypeGen(dmmf);
